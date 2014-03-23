@@ -231,10 +231,15 @@ class DebianPackage(ContentPackage):
         self.a_pkg.payload_checksum()
         self.file.close()
 
+    def setNVREA(self, name, version, release, epoch, arch):
+        """Set NVREA with default release and epoch"""
+        ContentPackage.setNVREA(
+            self, name, version, release or '0', epoch or '', arch)
+
     def getNVREA(self):
         return ''.join((
             self.name,
             '-', self.version,
-            ('-' + self.release if self.release else '0'),
+            '-' + self.release,
             ('-' + self.epoch if self.epoch else ''),
             '.', self.arch))
