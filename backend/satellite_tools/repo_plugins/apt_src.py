@@ -225,11 +225,15 @@ class DebianPackage(ContentPackage):
     def load_checksum_from_header(self):
         if self.path is None:
             raise rhnFault(50, "Unable to load package", explain=0)
-        self.file = open(self.path, 'rb')
-        self.a_pkg = rhn_pkg.package_from_stream(self.file, packaging='deb')
-        self.a_pkg.read_header()
-        self.a_pkg.payload_checksum()
-        self.file.close()
+        with open(self.path, 'rb') as package_file:
+            a_pkg = rhn_pkg.package_from_stream(package_file, packaging='deb')
+            a_pkg.read_header()
+            a_pkg.input_stream.seek(0, 0)
+            a_pkg.payload_checksum()
+            # TODO: find out why payload_checksum sets it wrong
+            a_pkg.input_stream.read()
+            a_pkg.payload_size = a_pkg.input_stream.tell()
+        self.a_pkg = a_pkg
 
     def setNVREA(self, name, version, release, epoch, arch):
         """Set NVREA with default release and epoch"""
